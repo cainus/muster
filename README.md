@@ -1,16 +1,16 @@
-# mustard
+# muster
 [![Build
-Status](https://secure.travis-ci.org/cainus/mustard.png?branch=master)](http://travis-ci.org/cainus/mustard)
+Status](https://secure.travis-ci.org/cainus/muster.png?branch=master)](http://travis-ci.org/cainus/muster)
 
-Mustard is a library for quickly and easily validating javascript objects.  It is especially designed for JSON API input validation, but is acceptable as a more general-purpose solution as well.
-Mustard does not pollute native prototypes or the global namespace.
+muster is a library for quickly and easily validating javascript objects.  It is especially designed for JSON API input validation, but is acceptable as a more general-purpose solution as well.
+muster does not pollute native prototypes or the global namespace.
 
 ## Example usage:
 
 ### Specifying required and optional fields
 ```javascript
-var Mustard = require('mustard').Mustard;
-var m = (new Mustard())
+var muster = require('muster').muster;
+var m = (new muster())
     .mustHaveKeys(["firstname", "lastname"])
     .mayHaveKeys(["emailaddress"])
 var doc = { firstname : 'Joe', lastname : 'Strummer'}
@@ -25,8 +25,8 @@ if (error){
 
 ### The anatomy of an error object:
 ```javascript
-var Mustard = require('mustard').Mustard;
-var m = (new Mustard())
+var muster = require('muster').muster;
+var m = (new muster())
             .mustHaveKeys(["firstname", "lastname"])
 var doc = { firstname : 'Joe'}
 var error = m.error(doc);
@@ -39,8 +39,8 @@ console.log(error);
 
 ### Key Validators (for validating individual keys of an object):
 ```javascript
-var Mustard = require('mustard').Mustard;
-var m = (new Mustard())
+var muster = require('muster').muster;
+var m = (new muster())
             .mustHaveKeys(["firstname", "lastname"])
             .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
 console.log(m.error({ firstname : 'Joe', lastname : 'Strummer'}));
@@ -55,33 +55,33 @@ console.log(m.error({ firstname : 'Johnny5', lastname : 'The Robot'}));
 ## Key Validators Examples:
 ### mustBeA
 ```javascript
-var m = (new Mustard()).key("year").mustBeA(Number)  // can match Number, String, or Array
+var m = (new muster()).key("year").mustBeA(Number)  // can match Number, String, or Array
 console.log(m.error({ year : 2011 }));
 ```
 ### mustBeLessThan
 ```javascript
-var m = (new Mustard()).key("year").mustBeLessThan(2012)
+var m = (new muster()).key("year").mustBeLessThan(2012)
 console.log(m.error({ year : 2011 }));
 ```
 ### mustBeGreaterThan
 ```javascript
-var m = (new Mustard()).key("year").mustBeGreaterThan(2010)
+var m = (new muster()).key("year").mustBeGreaterThan(2010)
 console.log(m.error({ year : 2011 }));
 ```
 ### mustEqual
 ```javascript
-var m = (new Mustard()).key("year").mustEqual(2011)
+var m = (new muster()).key("year").mustEqual(2011)
 console.log(m.error({ year : 2011 }));
 ```
 ### mustMatch
 ```javascript
-var m = (new Mustard()).key("year").mustMatch(/^[0-9]{4}$/)
+var m = (new muster()).key("year").mustMatch(/^[0-9]{4}$/)
 console.log(m.error({ year : '2011' }));
 ```
 ### mustPass  
 ```javascript
 // for user-defined matchers
-var m = (new Mustard()).key("year").mustPass("Year must be 2011", function(value){return value == 2011})
+var m = (new muster()).key("year").mustPass("Year must be 2011", function(value){return value == 2011})
 console.log(m.error({ year : 2011 }));
 ```
 
@@ -89,8 +89,8 @@ console.log(m.error({ year : 2011 }));
 Validators can be chained.
 
 ```javascript
-  var Mustard = require('mustard').Mustard;
-  var m = (new Mustard())
+  var muster = require('muster').muster;
+  var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
               .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
@@ -104,8 +104,8 @@ Validators can be chained.
 The errors() method will return all errors, rather than just the first one.
 
 ```javascript
-  var Mustard = require('mustard').Mustard;
-  var m = (new Mustard())
+  var muster = require('muster').muster;
+  var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
               .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
@@ -120,8 +120,8 @@ The errors() method will return all errors, rather than just the first one.
 The check() method will throw the error as an exception, rather than returning it.
 
 ```javascript
-  var Mustard = require('mustard').Mustard;
-  var m = (new Mustard())
+  var muster = require('muster').muster;
+  var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
               .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
@@ -140,8 +140,8 @@ The check() method will throw the error as an exception, rather than returning i
 The checkAll() method will throw all errors in array as an exception, rather than returning it.
 
 ```javascript
-  var Mustard = require('mustard').Mustard;
-  var m = (new Mustard())
+  var muster = require('muster').muster;
+  var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
               .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)

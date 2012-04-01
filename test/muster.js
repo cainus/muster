@@ -1,7 +1,7 @@
 var should = require('should');
-var Mustard = require('../mustard').Mustard;
+var Muster = require('../muster').Muster;
 
-describe('Mustard', function(){ 
+describe('Muster', function(){ 
 
   beforeEach(function(done){
      done();
@@ -32,13 +32,13 @@ describe('Mustard', function(){
   - add Date to mustBeA (have it interpret RFC3339 if necessary)
   - mustBeAfter / mustBeBefore for date comparisons
   x mustBeAnEmailAddress
-  - mustSatisfy  <-- takes a mustard instance for nested validations
+  - mustSatisfy  <-- takes a muster instance for nested validations
 
   */
 
   describe("#error", function(){
     it ("should return false if it doesn't have validations", function(){
-      var m = (new Mustard())
+      var m = (new Muster())
       var doc = { firstname : 'Gregg', 
                   lastname : 'Caines', 
                   birthyear : 1975,
@@ -49,7 +49,7 @@ describe('Mustard', function(){
   
   describe("#check", function(){
     it ("should throw an exception if there is an error", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       try {
         m.check({"firstname" : "Joe"});
         should.fail("expected exception was not thrown")
@@ -60,13 +60,13 @@ describe('Mustard', function(){
       }
     });
     it ("should do nothing if there is no error", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       m.check({"firstname" : "Joe", "lastname" : "Strummer"});
     });
   });
   describe("#checkAll", function(){
     it ("should throw an exception if there are any errors", function(){
-      var m = (new Mustard())
+      var m = (new Muster())
                 .mustHaveKeys(["firstname", "lastname"])
       try {
         m.checkAll({});
@@ -82,14 +82,14 @@ describe('Mustard', function(){
       }
     });
     it ("should do nothing if there is no error", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       m.checkAll({"firstname" : "Joe", "lastname" : "Strummer"});
     });
   });
 
   describe("#errors", function(){
     it ("should return empty array if it doesn't have validations", function(){
-      var m = (new Mustard())
+      var m = (new Muster())
       var doc = { firstname : 'Gregg', 
                   lastname : 'Caines', 
                   birthyear : 1975,
@@ -97,7 +97,7 @@ describe('Mustard', function(){
       JSON.stringify(m.errors(doc)).should.equal('[]');
     })
     it ("should return an array of multiple errors if it has multiple errors", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       var errors = m.errors({});
       errors[0].should.not.equal(false)
       errors[0].type.should.equal('MissingAttribute');
@@ -117,7 +117,7 @@ describe('Mustard', function(){
     // beyond these and those specified in mustHaveKeys() are
     // not allowed, and will cause a validation error.
     it ("should return an error if extra keys exist", function(){
-      var m = (new Mustard()).mayHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mayHaveKeys(["firstname", "lastname"])
       var doc = { firstname : 'Gregg', 
                   birthyear : 1975}
       var error = m.error(doc);
@@ -131,7 +131,7 @@ describe('Mustard', function(){
 
   describe("#mustHaveKeys", function(){
     it ("should return an error if required keys are missing", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       var doc = { firstname : 'Gregg', 
                   birthyear : 1975}
       var error = m.error(doc);
@@ -141,7 +141,7 @@ describe('Mustard', function(){
       error.detail.should.equal('lastname');
     })
     it ("should not return an error if required keys are supplied", function(){
-      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       var doc = { firstname : 'Gregg', 
                   lastname : 'Caines',
                   birthyear : 1975}
@@ -152,7 +152,7 @@ describe('Mustard', function(){
 
   describe("#mustPass", function(){
     it ("should return an error if the given function fails", function(){
-      var error = (new Mustard())
+      var error = (new Muster())
         .key("lastname").mustPass("lastname must be 'Caines'", function(val){
           return val == 'Caines';
         })
@@ -163,7 +163,7 @@ describe('Mustard', function(){
       error.detail.should.equal("NotCaines")
     })
     it ("should return false if the given function passes", function(){
-      var error = (new Mustard())
+      var error = (new Muster())
         .key("lastname").mustPass("lastname must be 'Caines'", function(val){
           return val == 'Caines';
         })
@@ -175,11 +175,11 @@ describe('Mustard', function(){
 
   describe("#mustBeGreaterThan", function(){
     it ("should return false if it's above the given number", function(){
-      var error = (new Mustard()).key("year").mustBeGreaterThan(2011).error({"year":2012})
+      var error = (new Muster()).key("year").mustBeGreaterThan(2011).error({"year":2012})
       error.should.equal(false)
     });
     it ("should return an error if it's not above the given number", function(){
-      var error = (new Mustard()).key("year").mustBeGreaterThan(2011).error({"year":2010})
+      var error = (new Muster()).key("year").mustBeGreaterThan(2011).error({"year":2010})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be greater than 2011")
@@ -188,11 +188,11 @@ describe('Mustard', function(){
   });
   describe("#mustBeLessThan", function(){
     it ("should return false if it's less than the given number", function(){
-      var error = (new Mustard()).key("year").mustBeLessThan(2011).error({"year":2010})
+      var error = (new Muster()).key("year").mustBeLessThan(2011).error({"year":2010})
       error.should.equal(false)
     });
     it ("should return an error if it's not less than the given number", function(){
-      var error = (new Mustard()).key("year").mustBeLessThan(2011).error({"year":2012})
+      var error = (new Muster()).key("year").mustBeLessThan(2011).error({"year":2012})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be less than 2011")
@@ -201,45 +201,45 @@ describe('Mustard', function(){
   });
   describe("#mustBeA", function(){
     it ("should return false if it's an object and should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Object).error({"year":{}})
+      var error = (new Muster()).key("year").mustBeA(Object).error({"year":{}})
       error.should.equal(false)
     });
     it ("should return false if it's an array and should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Array).error({"year":[]})
+      var error = (new Muster()).key("year").mustBeA(Array).error({"year":[]})
       error.should.equal(false)
     });
     it ("should return false if it's a string and should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(String).error({"year":"someyear"})
+      var error = (new Muster()).key("year").mustBeA(String).error({"year":"someyear"})
       error.should.equal(false)
     });
     it ("should return false if it's a number and should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Number).error({"year":2010})
+      var error = (new Muster()).key("year").mustBeA(Number).error({"year":2010})
       error.should.equal(false)
     });
 
     it ("should return an error if it's not a number but should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Number).error({"year":"twenty"})
+      var error = (new Muster()).key("year").mustBeA(Number).error({"year":"twenty"})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be a number")
       error.detail.should.equal("twenty")
     });
     it ("should return an error if it's not a string but should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(String).error({"year":1234})
+      var error = (new Muster()).key("year").mustBeA(String).error({"year":1234})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be a string")
       error.detail.should.equal(1234)
     });
     it ("should return an error if it's not an array but should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Array).error({"year":{}})
+      var error = (new Muster()).key("year").mustBeA(Array).error({"year":{}})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be an array")
       JSON.stringify(error.detail).should.equal('{}')
     });
     it ("should return an error if it's not an object but should be", function(){
-      var error = (new Mustard()).key("year").mustBeA(Object).error({"year":1234})
+      var error = (new Muster()).key("year").mustBeA(Object).error({"year":1234})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' must be an object")
@@ -249,11 +249,11 @@ describe('Mustard', function(){
   
   describe("#mustEqual", function(){
     it ("should return false if it the values are equal", function(){
-      var error = (new Mustard()).key("year").mustEqual('2010').error({"year":'2010'})
+      var error = (new Muster()).key("year").mustEqual('2010').error({"year":'2010'})
       error.should.equal(false)
     });
     it ("should return an error if the values are not equal", function(){
-      var error = (new Mustard()).key("year").mustEqual('2011').error({"year":'2010'})
+      var error = (new Muster()).key("year").mustEqual('2011').error({"year":'2010'})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' was not the correct value.")
@@ -263,11 +263,11 @@ describe('Mustard', function(){
 
   describe("#mustBeOneOf", function(){
     it ("should return false if it the values are equal", function(){
-      var error = (new Mustard()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2010'})
+      var error = (new Muster()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2010'})
       error.should.equal(false)
     });
     it ("should return an error if the values are not equal", function(){
-      var error = (new Mustard()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2009'})
+      var error = (new Muster()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2009'})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' was not a valid value.")
@@ -277,11 +277,11 @@ describe('Mustard', function(){
 
   describe("#mustMatch", function(){
     it ("should return false if it matches the given regex", function(){
-      var error = (new Mustard()).key("year").mustMatch(/[0-9]{4}/).error({"year":'2010'})
+      var error = (new Muster()).key("year").mustMatch(/[0-9]{4}/).error({"year":'2010'})
       error.should.equal(false)
     });
     it ("should return an error if it doesn't match the given regex", function(){
-      var error = (new Mustard()).key("year").mustMatch(/^[0-9]{3}$/).error({"year":'2010'})
+      var error = (new Muster()).key("year").mustMatch(/^[0-9]{3}$/).error({"year":'2010'})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' was not in the correct format.")
@@ -291,12 +291,12 @@ describe('Mustard', function(){
   });
   describe("#mustBeAnEmailAddress", function(){
     it ("should return false if it could be an email address", function(){
-      var error = (new Mustard())
+      var error = (new Muster())
           .key("emailaddress").mustBeAnEmailAddress().error({"emailaddress":'asdf@asdf.com'})
       error.should.equal(false)
     });
     it ("should return an error if it could not be an email address", function(){
-      var error = (new Mustard())
+      var error = (new Muster())
           .key("emailaddress").mustBeAnEmailAddress().error({"emailaddress":'2010'})
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")

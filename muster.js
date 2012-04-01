@@ -1,6 +1,6 @@
 const _ = require('underscore')
 
-var Mustard = function(){
+var Muster = function(){
   this.validation = {required : [], optional : true}
   this.fieldValidators = {}
   this.keyValidators = []
@@ -8,36 +8,36 @@ var Mustard = function(){
   this.pendingKey = null;
 }
 
-Mustard.prototype.key = function(keyname){
+Muster.prototype.key = function(keyname){
   this.pendingKey = keyname;
   return new KeyValidator(this, keyname);
 }
 
 
-Mustard.prototype.addKeyValidator = function(kv){
+Muster.prototype.addKeyValidator = function(kv){
   this.keyValidators.push(kv);
 }
 
-Mustard.prototype.mustHaveKeys = function(fields){
+Muster.prototype.mustHaveKeys = function(fields){
   this.validation.required = fields;
   return this;
 }
 
-Mustard.prototype.mayHaveKeys = function(fields){
+Muster.prototype.mayHaveKeys = function(fields){
   this.validation.optional = fields;
   return this;
 }
 
-Mustard.prototype.expectField = function(fieldname){
+Muster.prototype.expectField = function(fieldname){
   var expectation = {}
   return expectation;
 }
 
-Mustard.prototype.addFieldValidator = function(fieldName, validator, message){
+Muster.prototype.addFieldValidator = function(fieldName, validator, message){
   this.fieldValidators[fieldName] = {"validator" : validator, "message" : message}
 }
 
-Mustard.prototype.errors = function(doc, resourceName){
+Muster.prototype.errors = function(doc, resourceName){
   var properties = _.keys(doc);
 
   var errors = []
@@ -50,20 +50,20 @@ Mustard.prototype.errors = function(doc, resourceName){
   return errors;
 };
 
-Mustard.prototype.check = function(doc){
+Muster.prototype.check = function(doc){
   var error = this.error(doc)
   if (error !== false){
     throw error;
   }
 }
-Mustard.prototype.checkAll = function(doc){
+Muster.prototype.checkAll = function(doc){
   var errors = this.errors(doc)
   if (errors.length > 0){
     throw errors;
   }
 }
 
-Mustard.prototype.error = function(doc){
+Muster.prototype.error = function(doc){
   var properties = _.keys(doc);
   var errors = []
   errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties))
@@ -79,7 +79,7 @@ Mustard.prototype.error = function(doc){
   return false;
 };
 
-Mustard.prototype.getMissingAttributes = function(requiredProperties, incomingProperties){
+Muster.prototype.getMissingAttributes = function(requiredProperties, incomingProperties){
   var missings = _.difference(requiredProperties, incomingProperties);
   var errors = []
   _.each(missings, function(missing){
@@ -93,7 +93,7 @@ Mustard.prototype.getMissingAttributes = function(requiredProperties, incomingPr
   return errors;
 }
 
-Mustard.prototype.getUnexpectedAttributes = function(optionalProperties, requiredProperties, incomingProperties){
+Muster.prototype.getUnexpectedAttributes = function(optionalProperties, requiredProperties, incomingProperties){
   var allowedProperties = _.union(optionalProperties, requiredProperties);
   var extras = _.difference(incomingProperties, allowedProperties);
   var errors = []
@@ -108,7 +108,7 @@ Mustard.prototype.getUnexpectedAttributes = function(optionalProperties, require
   return errors;
 }
 
-Mustard.prototype.getInvalidAttributes = function(doc){
+Muster.prototype.getInvalidAttributes = function(doc){
   var validator = this;
   var errors = [];
   _.each(this.keyValidators, function(validator){
@@ -120,8 +120,8 @@ Mustard.prototype.getInvalidAttributes = function(doc){
   return errors;
 }
 
-var KeyValidator = function(mustard, keyname){
-  this.mustard = mustard;
+var KeyValidator = function(muster, keyname){
+  this.muster = muster;
   this.keyname = keyname;
   this.message = "Key " + this.keyname + " had an unknown attribute error";
   this.callback = function(){return true;}
@@ -146,8 +146,8 @@ KeyValidator.prototype.mustMatch = function(regex){
     return val.match(regex)
   }
   this.message = "Key '" + this.keyname + "' was not in the correct format.";
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustBeAnEmailAddress = function(){
@@ -156,8 +156,8 @@ KeyValidator.prototype.mustBeAnEmailAddress = function(){
     return val.match(/^[^\s]+@[^\s]+$/)
   }
   this.message = "Key '" + this.keyname + "' was not an email address.";
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustBeOneOf = function(list){
@@ -165,8 +165,8 @@ KeyValidator.prototype.mustBeOneOf = function(list){
     return _.include(list, val);
   }
   this.message = "Key '" + this.keyname + "' was not a valid value.";
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustEqual = function(expected){
@@ -174,8 +174,8 @@ KeyValidator.prototype.mustEqual = function(expected){
     return val == expected
   }
   this.message = "Key '" + this.keyname + "' was not the correct value.";
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustBeA = function(type){
@@ -192,28 +192,28 @@ KeyValidator.prototype.mustBeA = function(type){
     }
     return (typeof val == typestring);
   }  
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustBeGreaterThan = function(gtVal){
   this.message = "Key '" + this.keyname + "' must be greater than " + gtVal;
   this.callback = function(val){return val > gtVal;}
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 KeyValidator.prototype.mustBeLessThan = function(ltVal){
   this.message = "Key '" + this.keyname + "' must be less than " + ltVal;
   this.callback = function(val){return val < ltVal;}
-  this.mustard.addKeyValidator(this)
-  return this.mustard;
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
 KeyValidator.prototype.mustPass = function(message, callback){
     this.setValidator(message, callback)
-    this.mustard.addKeyValidator(this)
-    return this.mustard;
+    this.muster.addKeyValidator(this)
+    return this.muster;
 }
 
 
-exports.Mustard = Mustard;
+exports.Muster = Muster;

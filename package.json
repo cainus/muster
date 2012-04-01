@@ -1,10 +1,10 @@
 {
-      "name": "mustard",
+      "name": "muster",
       "description" : "A simple way to validate objects in javascript",
       "keywords" : ["json", "validate", "validation", "validator"], 
       "version": "0.0.1",
       "bugs": {
-       "url": "https://github.com/cainus/mustard/issues"
+       "url": "https://github.com/cainus/muster/issues"
       },
       "scripts" : {
         "test" : "make test"
