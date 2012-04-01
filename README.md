@@ -27,7 +27,7 @@ if (error){
 ```javascript
 var Mustard = require('mustard').Mustard;
 var m = (new Mustard())
-          .mustHaveKeys(["firstname", "lastname"])
+            .mustHaveKeys(["firstname", "lastname"])
 var doc = { firstname : 'Joe'}
 var error = m.error(doc);
 console.log(error);
@@ -37,10 +37,12 @@ console.log(error);
 // notice that they all have type, message, and detail fields.
 ```
 
-### KeyValidators:
+### Key Validators (for validating individual keys of an object):
 ```javascript
 var Mustard = require('mustard').Mustard;
-var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"]).key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
+var m = (new Mustard())
+            .mustHaveKeys(["firstname", "lastname"])
+            .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
 console.log(m.error({ firstname : 'Joe', lastname : 'Strummer'}));
 console.log(m.error({ firstname : 'Johnny5', lastname : 'The Robot'}));
 // outputs:
@@ -85,13 +87,16 @@ console.log(m.error({ year : 2011 }));
 
 ## Chaining Validators:
 Validators can be chained.
+
 ```javascript
-var Mustard = require('mustard').Mustard;
-var m = (new Mustard())
-          .mustHaveKeys(["firstname", "lastname"])
-          .mayHaveKeys("birthyear")
-          .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
-          .key("lastname").mustMatch(/^[A-Za-z\- ]+$/)
-console.log(m.error({ firstname : 'Joe', lastname : 'Strummer'}));
+  var Mustard = require('mustard').Mustard;
+  var m = (new Mustard())
+              .mustHaveKeys(["firstname", "lastname"])
+              .mayHaveKeys("birthyear")
+              .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
+              .key("lastname").mustMatch(/^[A-Za-z\- ]+$/)
+  console.log(m.error({ firstname : 'Joe', lastname : 'Strummer'}));
+
 ```
+
 
