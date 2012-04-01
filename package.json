@@ -1,0 +1,26 @@
+{
+      "name": "mustard",
+      "description" : "A simple way to validate objects in javascript",
+      "keywords" : ["json", "validate", "validation", "validator"], 
+      "version": "0.0.1",
+      "bugs": {
+       "url": "https://github.com/cainus/mustard/issues"
+      },
+      "scripts" : {
+        "test" : "make test"
+      },
+      "maintainers": [
+        {
+          "name": "Gregg Caines",
+          "email": "gregg@caines.ca",
+          "web": "http://caines.ca"
+        } 
+      ],
+      "dependencies": {
+          "underscore" : ""
+      },
+      "devDependencies" : {
+          "mocha" : "0.14.1",
+          "should" : "0.3.2"
+      }
+}
