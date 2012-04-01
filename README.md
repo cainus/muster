@@ -60,12 +60,12 @@ console.log(m.error({ year : 2011 }));
 ```
 ### mustBeLessThan
 ```javascript
-var m = (new Mustard()).key("year").mustLessThan(2012)
+var m = (new Mustard()).key("year").mustBeLessThan(2012)
 console.log(m.error({ year : 2011 }));
 ```
 ### mustBeGreaterThan
 ```javascript
-var m = (new Mustard()).key("year").mustGreaterThan(2010)
+var m = (new Mustard()).key("year").mustBeGreaterThan(2010)
 console.log(m.error({ year : 2011 }));
 ```
 ### mustEqual
