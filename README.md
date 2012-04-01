@@ -102,6 +102,7 @@ Validators can be chained.
 ## Alternative ways to get errors
 ### errors()
 The errors() method will return all errors, rather than just the first one.
+
 ```javascript
   var Mustard = require('mustard').Mustard;
   var m = (new Mustard())
@@ -114,8 +115,10 @@ The errors() method will return all errors, rather than just the first one.
 
 ```
 
+
 ### check()
 The check() method will throw the error as an exception, rather than returning it.
+
 ```javascript
   var Mustard = require('mustard').Mustard;
   var m = (new Mustard())
@@ -132,8 +135,10 @@ The check() method will throw the error as an exception, rather than returning i
   // output: success!
 ```
 
+
 ### checkAll()
 The checkAll() method will throw all errors in array as an exception, rather than returning it.
+
 ```javascript
   var Mustard = require('mustard').Mustard;
   var m = (new Mustard())
