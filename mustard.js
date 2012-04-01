@@ -150,6 +150,25 @@ KeyValidator.prototype.mustMatch = function(regex){
   return this.mustard;
 }
 
+KeyValidator.prototype.mustBeAnEmailAddress = function(){
+  // VERY loose definition of email address to avoid false negatives as much as possible.
+  this.callback = function(val){
+    return val.match(/^[^\s]+@[^\s]+$/)
+  }
+  this.message = "Key '" + this.keyname + "' was not an email address.";
+  this.mustard.addKeyValidator(this)
+  return this.mustard;
+}
+
+KeyValidator.prototype.mustBeOneOf = function(list){
+  this.callback = function(val){
+    return _.include(list, val);
+  }
+  this.message = "Key '" + this.keyname + "' was not a valid value.";
+  this.mustard.addKeyValidator(this)
+  return this.mustard;
+}
+
 KeyValidator.prototype.mustEqual = function(expected){
   this.callback = function(val){
     return val == expected

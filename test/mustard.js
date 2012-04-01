@@ -28,6 +28,11 @@ describe('Mustard', function(){
   - allow validation nesting
   x chainable?
   - extendable
+  - add Boolean to mustBeA
+  - add Date to mustBeA (have it interpret RFC3339 if necessary)
+  - mustBeAfter / mustBeBefore for date comparisons
+  x mustBeAnEmailAddress
+  - mustSatisfy  <-- takes a mustard instance for nested validations
 
   */
 
@@ -256,6 +261,20 @@ describe('Mustard', function(){
     });
   });
 
+  describe("#mustBeOneOf", function(){
+    it ("should return false if it the values are equal", function(){
+      var error = (new Mustard()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2010'})
+      error.should.equal(false)
+    });
+    it ("should return an error if the values are not equal", function(){
+      var error = (new Mustard()).key("year").mustBeOneOf(['2010', '2011', '2012']).error({"year":'2009'})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'year' was not a valid value.")
+      error.detail.should.equal('2009')
+    });
+  });
+
   describe("#mustMatch", function(){
     it ("should return false if it matches the given regex", function(){
       var error = (new Mustard()).key("year").mustMatch(/[0-9]{4}/).error({"year":'2010'})
@@ -266,6 +285,22 @@ describe('Mustard', function(){
       error.should.not.equal(false)
       error.type.should.equal("InvalidAttribute")
       error.message.should.equal("Key 'year' was not in the correct format.")
+      error.detail.should.equal('2010')
+    });
+  
+  });
+  describe("#mustBeAnEmailAddress", function(){
+    it ("should return false if it could be an email address", function(){
+      var error = (new Mustard())
+          .key("emailaddress").mustBeAnEmailAddress().error({"emailaddress":'asdf@asdf.com'})
+      error.should.equal(false)
+    });
+    it ("should return an error if it could not be an email address", function(){
+      var error = (new Mustard())
+          .key("emailaddress").mustBeAnEmailAddress().error({"emailaddress":'2010'})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'emailaddress' was not an email address.")
       error.detail.should.equal('2010')
     });
   
