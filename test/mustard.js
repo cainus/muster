@@ -10,17 +10,18 @@ describe('Mustard', function(){
   /*
 
   GOALS:
-  - make failed validations throw exceptions
-  - exception should be a list of all failures
-  - validate fields as well as document as a whole
+  x make failed validations throw exceptions
+  x exception should be a list of all failures
+  x validate fields as well as document as a whole
   x make user-defined validations possible in case provided ones aren't enough
   x handle required, optional, and allow-all fields
   x don't dirty Object.prototype
   x don't pollute global namespace
-  - check() throws first exception
-  - checkAll() throws an array containing all errors as an exception
+  x check() throws first exception
+  x checkAll() throws an array containing all errors as an exception
   x error() returns the first error
-  - errors() returns all errors
+  x errors() returns all errors
+  - custom validations should optionally take a callback in case they're asynch
 
   SECONDARY GOALS:
   - runnable in a browser
@@ -40,7 +41,69 @@ describe('Mustard', function(){
       m.error(doc).should.equal(false);
     })
   });
+  
+  describe("#check", function(){
+    it ("should throw an exception if there is an error", function(){
+      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      try {
+        m.check({"firstname" : "Joe"});
+        should.fail("expected exception was not thrown")
+      } catch (error) {
+        error.type.should.equal('MissingAttribute');
+        error.message.should.equal("A key named 'lastname' is required but was not found.");
+        error.detail.should.equal('lastname');
+      }
+    });
+    it ("should do nothing if there is no error", function(){
+      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      m.check({"firstname" : "Joe", "lastname" : "Strummer"});
+    });
+  });
+  describe("#checkAll", function(){
+    it ("should throw an exception if there are any errors", function(){
+      var m = (new Mustard())
+                .mustHaveKeys(["firstname", "lastname"])
+      try {
+        m.checkAll({});
+        should.fail("expected exception was not thrown")
+      } catch (errors) {
+        errors.length.should.equal(2);
+        errors[0].type.should.equal('MissingAttribute');
+        errors[0].message.should.equal("A key named 'firstname' is required but was not found.");
+        errors[0].detail.should.equal('firstname');
+        errors[1].type.should.equal('MissingAttribute');
+        errors[1].message.should.equal("A key named 'lastname' is required but was not found.");
+        errors[1].detail.should.equal('lastname');
+      }
+    });
+    it ("should do nothing if there is no error", function(){
+      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      m.checkAll({"firstname" : "Joe", "lastname" : "Strummer"});
+    });
+  });
 
+  describe("#errors", function(){
+    it ("should return empty array if it doesn't have validations", function(){
+      var m = (new Mustard())
+      var doc = { firstname : 'Gregg', 
+                  lastname : 'Caines', 
+                  birthyear : 1975,
+                  isAwesome : true }
+      JSON.stringify(m.errors(doc)).should.equal('[]');
+    })
+    it ("should return an array of multiple errors if it has multiple errors", function(){
+      var m = (new Mustard()).mustHaveKeys(["firstname", "lastname"])
+      var errors = m.errors({});
+      errors[0].should.not.equal(false)
+      errors[0].type.should.equal('MissingAttribute');
+      errors[0].message.should.equal("A key named 'firstname' is required but was not found.");
+      errors[0].detail.should.equal('firstname');
+      errors[1].should.not.equal(false)
+      errors[1].type.should.equal('MissingAttribute');
+      errors[1].message.should.equal("A key named 'lastname' is required but was not found.");
+      errors[1].detail.should.equal('lastname');
+    })
+  });
 
   describe("#mayHaveKeys", function(){
     // this method specifies keys that are optional, 

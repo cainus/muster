@@ -37,26 +37,49 @@ Mustard.prototype.addFieldValidator = function(fieldName, validator, message){
   this.fieldValidators[fieldName] = {"validator" : validator, "message" : message}
 }
 
-Mustard.prototype.error = function(doc, resourceName){
-  if (!this.validation){return true;}
+Mustard.prototype.errors = function(doc, resourceName){
   var properties = _.keys(doc);
 
   var errors = []
-  errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties, resourceName))
+  errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties))
   if (this.validation.optional !== true){
-    errors = _.union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties, resourceName))
+    errors = _.union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties))
   }
-  errors = _.union(errors, this.getInvalidAttributes(doc, resourceName))
+  errors = _.union(errors, this.getInvalidAttributes(doc))
 
-  if (errors.length > 0){return errors[0];}
-  if (this.validation.docValidator) {
-    return this.validation.docValidator(doc);
-  } else {
-    return false;
-  }
+  return errors;
 };
 
-Mustard.prototype.getMissingAttributes = function(requiredProperties, incomingProperties, resourceName){
+Mustard.prototype.check = function(doc){
+  var error = this.error(doc)
+  if (error !== false){
+    throw error;
+  }
+}
+Mustard.prototype.checkAll = function(doc){
+  var errors = this.errors(doc)
+  if (errors.length > 0){
+    throw errors;
+  }
+}
+
+Mustard.prototype.error = function(doc){
+  var properties = _.keys(doc);
+  var errors = []
+  errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties))
+  if (errors.length > 0){return errors[0];}
+
+  if (this.validation.optional !== true){
+    errors = _.union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties))
+  }
+  if (errors.length > 0){return errors[0];}
+
+  errors = _.union(errors, this.getInvalidAttributes(doc))
+  if (errors.length > 0){return errors[0];}
+  return false;
+};
+
+Mustard.prototype.getMissingAttributes = function(requiredProperties, incomingProperties){
   var missings = _.difference(requiredProperties, incomingProperties);
   var errors = []
   _.each(missings, function(missing){
@@ -70,7 +93,7 @@ Mustard.prototype.getMissingAttributes = function(requiredProperties, incomingPr
   return errors;
 }
 
-Mustard.prototype.getUnexpectedAttributes = function(optionalProperties, requiredProperties, incomingProperties, resourceName){
+Mustard.prototype.getUnexpectedAttributes = function(optionalProperties, requiredProperties, incomingProperties){
   var allowedProperties = _.union(optionalProperties, requiredProperties);
   var extras = _.difference(incomingProperties, allowedProperties);
   var errors = []
@@ -85,7 +108,7 @@ Mustard.prototype.getUnexpectedAttributes = function(optionalProperties, require
   return errors;
 }
 
-Mustard.prototype.getInvalidAttributes = function(doc, resourceName){
+Mustard.prototype.getInvalidAttributes = function(doc){
   var validator = this;
   var errors = [];
   _.each(this.keyValidators, function(validator){
