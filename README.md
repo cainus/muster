@@ -55,7 +55,7 @@ console.log(m.error({ firstname : 'Johnny5', lastname : 'The Robot'}));
 ## Key Validators Examples:
 ### mustBeA
 ```javascript
-var m = (new muster()).key("year").mustBeA(Number)  // can match Number, String, or Array
+var m = (new muster()).key("year").mustBeA(Number)  // can match Number, String, Boolean, or Array
 console.log(m.error({ year : 2011 }));
 ```
 ### mustBeLessThan
@@ -78,11 +78,31 @@ console.log(m.error({ year : 2011 }));
 var m = (new muster()).key("year").mustMatch(/^[0-9]{4}$/)
 console.log(m.error({ year : '2011' }));
 ```
+### mustBeOneOf  
+```javascript
+// for enumerations
+var m = (new muster()).key("year").mustBeOneOf([2011, 2010, 2009])
+console.log(m.error({ year : 2011 }));
+```
+### mustBeAnEmailAddress  
+```javascript
+// VERY loose acceptance, to avoid false-negatives
+var m = (new muster()).key("emailaddress").mustBeAnEmailAddress()
+console.log(m.error({ emailaddress : "asdf@asdf.com" }));
+```
 ### mustPass  
 ```javascript
 // for user-defined matchers
 var m = (new muster()).key("year").mustPass("Year must be 2011", function(value){return value == 2011})
 console.log(m.error({ year : 2011 }));
+```
+### mustPassMuster  
+```javascript
+// takes a muster object for sub-objects.
+var nameMuster = (new Muster()).mustHaveKeys(["first", "middle", "last"])
+var m = (new Muster())
+        .key("name").mustPassMuster(nameMuster)
+console.log(m.error({"name" : {"first" : "Gregg", "middle" : "pearson", "last" : "Caines"}}));
 ```
 
 ## Chaining Validators:
