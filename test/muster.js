@@ -22,17 +22,19 @@ describe('Muster', function(){
   x error() returns the first error
   x errors() returns all errors
   - custom validations should optionally take a callback in case they're asynch
+  x key validators shouldn't be applied if field doesn't exist in doc
+  x document level mustPass()
 
   SECONDARY GOALS:
   - runnable in a browser
-  - allow validation nesting
+  x allow validation nesting
   x chainable?
   - extendable
-  - add Boolean to mustBeA
+  x add Boolean to mustBeA
   - add Date to mustBeA (have it interpret RFC3339 if necessary)
-  - mustBeAfter / mustBeBefore for date comparisons
   x mustBeAnEmailAddress
-  - mustSatisfy  <-- takes a muster instance for nested validations
+  x mustPassMuster  <-- takes a muster instance for nested validations
+  x Doesn't use external libraries
 
   */
 
@@ -62,6 +64,10 @@ describe('Muster', function(){
     it ("should do nothing if there is no error", function(){
       var m = (new Muster()).mustHaveKeys(["firstname", "lastname"])
       m.check({"firstname" : "Joe", "lastname" : "Strummer"});
+    });
+    it ("should not care about validations on fields that don't exist", function(){
+      // mustHaveKeys() should be used to catch missing fields, not key validators
+      var m = (new Muster()).key("NO_KEY").mustBeA(String).check({})
     });
   });
   describe("#checkAll", function(){
@@ -150,7 +156,47 @@ describe('Muster', function(){
     })
   });
 
-  describe("#mustPass", function(){
+  describe("#mustPass with error()", function(){
+    it ("should return an error if the given function fails", function(){
+      var error = (new Muster()).mustPass("lastname must be 'Caines'", function(val){
+          return val.lastname == 'Caines';
+        })
+      .error({"lastname" : "NotCaines"});
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidDocument")
+      error.message.should.equal("lastname must be 'Caines'")
+      JSON.stringify(error.detail).should.equal('{"lastname":"NotCaines"}')
+    })
+    it ("should return false if the given function passes", function(){
+      var error = (new Muster()).mustPass("lastname must be 'Caines'", function(val){
+          return val.lastname == 'Caines';
+        })
+      .error({"lastname" : "Caines"});
+      error.should.equal(false)
+    })
+  });
+  describe("#mustPass with errors()", function(){
+    it ("should return an array with an error if the given function fails", function(){
+      var errors = (new Muster()).mustPass("lastname must be 'Caines'", function(val){
+          return val.lastname == 'Caines';
+        })
+      .errors({"lastname" : "NotCaines"});
+      errors[0].should.not.equal(false)
+      errors[0].type.should.equal("InvalidDocument")
+      errors[0].message.should.equal("lastname must be 'Caines'")
+      JSON.stringify(errors[0].detail).should.equal('{"lastname":"NotCaines"}')
+      errors.length.should.equal(1);
+    })
+    it ("should return an empty array if the given function passes", function(){
+      var errors = (new Muster()).mustPass("lastname must be 'Caines'", function(val){
+          return val.lastname == 'Caines';
+        })
+      .errors({"lastname" : "Caines"});
+      JSON.stringify(errors).should.equal('[]')
+    })
+  });
+
+  describe("#key().mustPass", function(){
     it ("should return an error if the given function fails", function(){
       var error = (new Muster())
         .key("lastname").mustPass("lastname must be 'Caines'", function(val){
@@ -172,6 +218,25 @@ describe('Muster', function(){
     })
   });
 
+  describe("#mustPassMuster", function(){
+    it ("should return an error if the given must object fails", function(){
+      var nameMuster = (new Muster()).mustHaveKeys(["first", "middle", "last"])
+      var error = (new Muster())
+        .key("name").mustPassMuster(nameMuster)
+        .error({"name" : {"first" : "Gregg", "last" : "Caines"}});
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Problem with key 'name': A key named 'middle' is required but was not found.")
+      JSON.stringify(error.detail).should.equal('{"first":"Gregg","last":"Caines"}')
+    })
+    it ("should return false if the given muster object passes", function(){
+      var nameMuster = (new Muster()).mustHaveKeys(["first", "middle", "last"])
+      var error = (new Muster())
+        .key("name").mustPassMuster(nameMuster)
+        .error({"name" : {"first" : "Gregg", "middle" : "pearson", "last" : "Caines"}});
+      error.should.equal(false)
+    })
+  });
 
   describe("#mustBeGreaterThan", function(){
     it ("should return false if it's above the given number", function(){
@@ -215,6 +280,20 @@ describe('Muster', function(){
     it ("should return false if it's a number and should be", function(){
       var error = (new Muster()).key("year").mustBeA(Number).error({"year":2010})
       error.should.equal(false)
+    });
+    it ("should return false if it's a boolean and should be", function(){
+      var error = (new Muster())
+                      .key("awesome").mustBeA(Boolean)
+                      .key("terrible").mustBeA(Boolean)
+                      .error({"awesome":true, "terrible" : false})
+      error.should.equal(false)
+    });
+    it ("should return an error if it's not a boolean but should be", function(){
+      var error = (new Muster()).key("awesome").mustBeA(Boolean).error({"awesome":1})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'awesome' must be a boolean")
+      error.detail.should.equal(1)
     });
 
     it ("should return an error if it's not a number but should be", function(){

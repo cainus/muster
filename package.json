@@ -17,7 +17,6 @@
         } 
       ],
       "dependencies": {
-          "underscore" : ""
       },
       "devDependencies" : {
           "mocha" : "0.14.1",

@@ -1,15 +1,10 @@
-const _ = require('underscore')
-
 var Muster = function(){
   this.validation = {required : [], optional : true}
-  this.fieldValidators = {}
   this.keyValidators = []
-  this.mode = "validatable"
-  this.pendingKey = null;
+  this.docValidators = []
 }
 
 Muster.prototype.key = function(keyname){
-  this.pendingKey = keyname;
   return new KeyValidator(this, keyname);
 }
 
@@ -28,27 +23,35 @@ Muster.prototype.mayHaveKeys = function(fields){
   return this;
 }
 
-Muster.prototype.expectField = function(fieldname){
-  var expectation = {}
-  return expectation;
-}
-
-Muster.prototype.addFieldValidator = function(fieldName, validator, message){
-  this.fieldValidators[fieldName] = {"validator" : validator, "message" : message}
+Muster.prototype.mustPass = function(message, callback){
+  this.docValidators.push({"message" : message, "callback" : callback})
+  return this;
 }
 
 Muster.prototype.errors = function(doc, resourceName){
-  var properties = _.keys(doc);
+  var properties = keys(doc);
 
   var errors = []
-  errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties))
+  errors = union(errors, this.getDocumentErrors(doc))
+  errors = union(errors, this.getMissingAttributes(this.validation.required, properties))
   if (this.validation.optional !== true){
-    errors = _.union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties))
+    errors = union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties))
   }
-  errors = _.union(errors, this.getInvalidAttributes(doc))
+  errors = union(errors, this.getInvalidAttributes(doc))
 
   return errors;
 };
+
+Muster.prototype.getDocumentErrors = function(doc){
+  var errors = [];
+  for(var i = 0; i < this.docValidators.length; i++){
+    var obj = this.docValidators[i];
+    if (!obj.callback(doc)){
+      errors.push({type : 'InvalidDocument', message : obj.message, detail : doc})
+    }
+  };
+  return errors;
+}
 
 Muster.prototype.check = function(doc){
   var error = this.error(doc)
@@ -64,59 +67,67 @@ Muster.prototype.checkAll = function(doc){
 }
 
 Muster.prototype.error = function(doc){
-  var properties = _.keys(doc);
+  var properties = keys(doc);
   var errors = []
-  errors = _.union(errors, this.getMissingAttributes(this.validation.required, properties))
+  errors = this.getDocumentErrors(doc)
+  if (errors.length > 0){return errors[0];}
+
+  errors = this.getMissingAttributes(this.validation.required, properties)
   if (errors.length > 0){return errors[0];}
 
   if (this.validation.optional !== true){
-    errors = _.union(errors, this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties))
+    errors = this.getUnexpectedAttributes(this.validation.optional, this.validation.required, properties)
   }
   if (errors.length > 0){return errors[0];}
 
-  errors = _.union(errors, this.getInvalidAttributes(doc))
+  errors = this.getInvalidAttributes(doc)
   if (errors.length > 0){return errors[0];}
   return false;
 };
 
 Muster.prototype.getMissingAttributes = function(requiredProperties, incomingProperties){
-  var missings = _.difference(requiredProperties, incomingProperties);
+  var missings = difference(requiredProperties, incomingProperties);
   var errors = []
-  _.each(missings, function(missing){
+  for (var i = 0; i < missings.length; i++){
+    var missing = missings[i];
     var error = {
       "type": "MissingAttribute", 
       "message": "A key named '" + missing + "' is required but was not found.",
       "detail": missing
     }
     errors.push(error)
-  });
+  };
   return errors;
 }
 
 Muster.prototype.getUnexpectedAttributes = function(optionalProperties, requiredProperties, incomingProperties){
-  var allowedProperties = _.union(optionalProperties, requiredProperties);
-  var extras = _.difference(incomingProperties, allowedProperties);
+  var allowedProperties = union(optionalProperties, requiredProperties);
+  var extras = difference(incomingProperties, allowedProperties);
   var errors = []
-  _.each(extras, function(extra){
+  for (var i = 0; i < extras.length; i++){
+   var extra = extras[0];
    var error = {
     "type": "UnexpectedAttribute", 
     "message": "A key named '" + extra + "' was found but is not allowed.",
     "detail": extra 
     }
-    return errors.push(error);
-  });
+    errors.push(error);
+  }
   return errors;
 }
 
 Muster.prototype.getInvalidAttributes = function(doc){
   var validator = this;
   var errors = [];
-  _.each(this.keyValidators, function(validator){
-    var error = validator.error(doc[validator.keyname])
-    if (error){
-      errors.push(error);
+  for (var i = 0; i < this.keyValidators.length; i++){
+    var validator = this.keyValidators[i];
+    if (doc.hasOwnProperty(validator.keyname)){
+      var error = validator.error(doc[validator.keyname])
+      if (error){
+        errors.push(error);
+      }
     }
-  });
+  };
   return errors;
 }
 
@@ -162,7 +173,7 @@ KeyValidator.prototype.mustBeAnEmailAddress = function(){
 
 KeyValidator.prototype.mustBeOneOf = function(list){
   this.callback = function(val){
-    return _.include(list, val);
+    return include(list, val);
   }
   this.message = "Key '" + this.keyname + "' was not a valid value.";
   this.muster.addKeyValidator(this)
@@ -210,10 +221,58 @@ KeyValidator.prototype.mustBeLessThan = function(ltVal){
 }
 
 KeyValidator.prototype.mustPass = function(message, callback){
-    this.setValidator(message, callback)
-    this.muster.addKeyValidator(this)
-    return this.muster;
+  this.setValidator(message, callback)
+  this.muster.addKeyValidator(this)
+  return this.muster;
 }
 
+KeyValidator.prototype.mustPassMuster = function(musterObj){
+  var keyname = this.keyname;
+  var callback = function(val){
+    var error = musterObj.error(val) 
+    if (!!error.message){
+      this.setValidator("Problem with key '" + keyname + "': " + error.message, callback)
+    }
+    return error === false;
+  }
+  this.setValidator('', callback)
+  this.muster.addKeyValidator(this)
+  return this.muster;
+}
+
+// util -----------------
+function union(arr1, arr2){
+  var arr1 = arr1 || []
+  var arr2 = arr2 || []
+  var arr3 = arr1.slice(0);
+  for(var i = 0; i < arr2.length; i++){
+    arr3.push(arr2[i]);
+  }
+  return arr3;
+}
+
+function include(arr, val){
+  return (arr.indexOf(val) !== -1)
+}
+
+function difference(from, subtract){
+  var diff = []
+  for(var i = 0; i < from.length; i++){
+    if (!include(subtract, from[i])){
+      diff.push(from[i]);
+    }
+  }
+  return diff;
+}
+
+function keys(obj){
+  var keys = [];
+  for(var x in obj){
+    if (obj.hasOwnProperty(x)){
+      keys.push(x);
+    }  
+  }
+  return keys;
+}
 
 exports.Muster = Muster;
