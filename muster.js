@@ -131,6 +131,8 @@ Muster.prototype.getInvalidAttributes = function(doc){
   return errors;
 }
 
+
+
 var KeyValidator = function(muster, keyname){
   this.muster = muster;
   this.keyname = keyname;
@@ -189,6 +191,43 @@ KeyValidator.prototype.mustEqual = function(expected){
   return this.muster;
 }
 
+KeyValidator.prototype.mustHaveLength = function(expectedOrComparator, expected){
+  if (expected === undefined){
+    var expected = expectedOrComparator;
+    var comparator = "==";
+  } else {
+    var comparator = expectedOrComparator;
+  }
+  var callbacks = {
+    '>' : function(val){  return val.hasOwnProperty("length") && (val.length > expected);},
+    '<' : function(val){  return val.hasOwnProperty("length") && (val.length < expected);},
+    '=' : function(val){  return val.hasOwnProperty("length") && (val.length == expected);},
+    '==' : function(val){ return (val.hasOwnProperty("length") && (val.length == expected)); },
+    '>=' : function(val){ return val.hasOwnProperty("length") && (val.length >= expected);},
+    '=>' : function(val){ return val.hasOwnProperty("length") && (val.length >= expected);},
+    '<=' : function(val){ return val.hasOwnProperty("length") && (val.length <= expected);},
+    '=<' : function(val){ return val.hasOwnProperty("length") && (val.length <= expected);}
+  }
+  if (!!callbacks[comparator]){
+    this.callback = callbacks[comparator];
+  } else {
+    throw "Comparator for mustHaveLength() must be one of >, <, ==, >=, or <=."
+  }
+  var compWords = {
+    '>' : 'greater than', 
+    '<' : 'less than', 
+    '=' : 'equal to', 
+    '==' : 'equal to', 
+    '>=' : 'greater than or equal to', 
+    '=>' : 'greater than or equal to', 
+    '<=' : 'less than or equal to', 
+    '=<' : 'less than or equal to', 
+  }
+  this.message = "Key '" + this.keyname + "' must have a length " + compWords[comparator] + " " + expected + ".";
+  this.muster.addKeyValidator(this)
+  return this.muster;
+}
+
 KeyValidator.prototype.mustBeA = function(type){
   var typestring = (typeof type).toLowerCase();
   if (!!type.name) typestring = type.name.toLowerCase()
@@ -203,6 +242,18 @@ KeyValidator.prototype.mustBeA = function(type){
     }
     return (typeof val == typestring);
   }  
+  this.muster.addKeyValidator(this)
+  return this.muster;
+}
+
+KeyValidator.prototype.mustBeADateString = function(){
+  this.message = "Key '" + this.keyname + "' must be a valid ISO8601/RFC3339 date string.";
+  this.callback = function(val){
+    var re1 = "^([-+]?)(\\d{4,})(?:-?(\\d{2})(?:-?(\\d{2})" +
+        "(?:[Tt ](\\d{2})(?::?(\\d{2})(?::?(\\d{2})(?:\\.(\\d{1,3})(?:\\d+)?)?)?)?" +
+        "(?:[Zz]|(?:([-+])(\\d{2})(?::?(\\d{2}))?)?)?)?)?)?$";
+    return val.match(re1)
+  }
   this.muster.addKeyValidator(this)
   return this.muster;
 }
@@ -239,6 +290,9 @@ KeyValidator.prototype.mustPassMuster = function(musterObj){
   this.muster.addKeyValidator(this)
   return this.muster;
 }
+
+Muster.prototype.keyValidatorPrototype = KeyValidator.prototype;
+Muster.keyValidatorPrototype = KeyValidator.prototype;
 
 // util -----------------
 function union(arr1, arr2){

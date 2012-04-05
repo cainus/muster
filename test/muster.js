@@ -21,7 +21,6 @@ describe('Muster', function(){
   x checkAll() throws an array containing all errors as an exception
   x error() returns the first error
   x errors() returns all errors
-  - custom validations should optionally take a callback in case they're asynch
   x key validators shouldn't be applied if field doesn't exist in doc
   x document level mustPass()
 
@@ -29,12 +28,14 @@ describe('Muster', function(){
   - runnable in a browser
   x allow validation nesting
   x chainable?
-  - extendable
+  x extendable (how does the user add their own must methods?)
   x add Boolean to mustBeA
-  - add Date to mustBeA (have it interpret RFC3339 if necessary)
+  x add Date to mustBeA (have it interpret RFC3339 if necessary)
   x mustBeAnEmailAddress
   x mustPassMuster  <-- takes a muster instance for nested validations
   x Doesn't use external libraries
+  x mustHaveLength(3)
+  x mustHaveLength('>', 3)
 
   */
 
@@ -264,6 +265,57 @@ describe('Muster', function(){
       error.detail.should.equal(2012)
     });
   });
+  describe("#mustHaveLength", function(){
+    it ("should return false if it has an expected matching length", function(){
+      var error = (new Muster())
+                    .key('somearr').mustHaveLength(4)
+                    .error({"somearr":[1,2,3,4]})
+      error.should.equal(false)
+    });
+    it ("should return false if the > criteria is successful for arrays", function(){
+      var error = (new Muster())
+                    .key('somearr').mustHaveLength('>', 3)
+                    .error({"somearr":[1,2,3,4]})
+      error.should.equal(false)
+    });
+    it ("should return false if the < criteria is successful for strings", function(){
+      var error = (new Muster())
+                    .key('somearr').mustHaveLength('<', 5)
+                    .error({"somearr":'1234'})
+      error.should.equal(false)
+    });
+    it ("should throw an error if the comparator is invalid", function(){
+      try {
+        var error = (new Muster())
+                    .key('somearr').mustHaveLength('!', 5)
+                    .error({"somearr":'1234'})
+        should.fail("expected exception was not raised!")
+      } catch (error){
+        error.should.equal('Comparator for mustHaveLength() must be one of >, <, ==, >=, or <=.')
+      }
+    });
+    it ("should return an error if it doesn't have a .length", function(){
+      var error = (new Muster()).key("year").mustHaveLength(2).error({"year":2010})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'year' must have a length equal to 2.")
+      error.detail.should.equal(2010)
+    });
+    it ("should return an error if it fails to match expected length", function(){
+      var error = (new Muster()).key("year").mustHaveLength(2).error({"year":'2010'})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'year' must have a length equal to 2.")
+      error.detail.should.equal('2010')
+    });
+    it ("should return an error if it fails to match > criteria for arrays", function(){
+      var error = (new Muster()).key("somearr").mustHaveLength('>', 4).error({"somearr":[1,2,3,4]})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'somearr' must have a length greater than 4.")
+      JSON.stringify(error.detail).should.equal('[1,2,3,4]')
+    });
+  });
   describe("#mustBeA", function(){
     it ("should return false if it's an object and should be", function(){
       var error = (new Muster()).key("year").mustBeA(Object).error({"year":{}})
@@ -325,6 +377,21 @@ describe('Muster', function(){
       error.detail.should.equal(1234)
     });
   });
+  describe("#mustBeADateString", function(){
+    it ("should return false if it the values are equal", function(){
+      var error = (new Muster())
+                      .key("year").mustBeADateString()
+                      .error({"somedate":'2009-10-16T20:11:36.456-07:00'})
+      error.should.equal(false)
+    });
+    it ("should return an error if the values are not equal", function(){
+      var error = (new Muster()).key("year").mustBeADateString().error({"year":'14'})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'year' must be a valid ISO8601/RFC3339 date string.")
+      error.detail.should.equal('14')
+    });
+  });
   
   describe("#mustEqual", function(){
     it ("should return false if it the values are equal", function(){
@@ -383,6 +450,32 @@ describe('Muster', function(){
       error.detail.should.equal('2010')
     });
   
+  });
+  describe("#getKeyValidatorPrototype", function(){
+    it ("should allow the user to add her own must- criteria", function(){
+      var validator = Muster.keyValidatorPrototype;
+      // just add your own validations to the prototype
+      validator.mustBeTheColour = function(colour){
+        // the validation message...
+        this.message = "Key '" + this.keyname + "' must be the colour " + colour + ".";
+        this.callback = function(val){  // the validation function
+          return val == colour; 
+        };
+        this.muster.addKeyValidator(this) // registers the key validator
+        return this.muster;  // necessary for chaining
+      }
+      var error = (new Muster())
+                    .key("colour").mustBeTheColour("blue")
+                    .error({"colour" : "yellow"})
+      error.should.not.equal(false)
+      error.type.should.equal("InvalidAttribute")
+      error.message.should.equal("Key 'colour' must be the colour blue.")
+      error.detail.should.equal('yellow')
+      var error = (new Muster())
+                    .key("colour").mustBeTheColour("yellow")
+                    .error({"colour" : "yellow"})
+      error.should.equal(false)
+    });
   });
 
 })
