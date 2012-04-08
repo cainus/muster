@@ -9,33 +9,9 @@ describe('Muster', function(){
 
   /*
 
-  GOALS:
-  x make failed validations throw exceptions
-  x exception should be a list of all failures
-  x validate fields as well as document as a whole
-  x make user-defined validations possible in case provided ones aren't enough
-  x handle required, optional, and allow-all fields
-  x don't dirty Object.prototype
-  x don't pollute global namespace
-  x check() throws first exception
-  x checkAll() throws an array containing all errors as an exception
-  x error() returns the first error
-  x errors() returns all errors
-  x key validators shouldn't be applied if field doesn't exist in doc
-  x document level mustPass()
-
-  SECONDARY GOALS:
+  TODO:
+  - jshint in ci
   - runnable in a browser
-  x allow validation nesting
-  x chainable?
-  x extendable (how does the user add their own must methods?)
-  x add Boolean to mustBeA
-  x add Date to mustBeA (have it interpret RFC3339 if necessary)
-  x mustBeAnEmailAddress
-  x mustPassMuster  <-- takes a muster instance for nested validations
-  x Doesn't use external libraries
-  x mustHaveLength(3)
-  x mustHaveLength('>', 3)
 
   */
 
