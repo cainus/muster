@@ -68,6 +68,17 @@ console.log(m.error({ year : 2011 }));
 var m = (new muster()).key("year").mustBeGreaterThan(2010)
 console.log(m.error({ year : 2011 }));
 ```
+### mustHaveLength
+```javascript
+// for strings and arrays
+var m = (new muster())
+            .key("year").mustHaveLength(4)
+            .key("letters").mustHaveLength(">", 2)
+            .key("letters").mustHaveLength("<", 3)
+            .key("letters").mustHaveLength("<=", 4)
+console.log(m.error({ year : '2011', letters : ['a', 'b', 'c', 'd'] }));
+
+```
 ### mustEqual
 ```javascript
 var m = (new muster()).key("year").mustEqual(2011)
@@ -89,6 +100,12 @@ console.log(m.error({ year : 2011 }));
 // VERY loose acceptance, to avoid false-negatives
 var m = (new muster()).key("emailaddress").mustBeAnEmailAddress()
 console.log(m.error({ emailaddress : "asdf@asdf.com" }));
+```
+### mustBeADateString  
+```javascript
+// determine if it's a RFC3339 / ISO 1806 datestring 
+var m = (new muster()).key("created").mustBeADateString()
+console.log(m.error({ created : "2009-10-16T20:11:36.456-07:00" }));
 ```
 ### mustPass  
 ```javascript
@@ -175,4 +192,27 @@ The checkAll() method will throw all errors in array as an exception, rather tha
   }
   // output: success!
 ```
+## Think muster is missing an obvious validator?  
+I'd love to hear suggestions or get pull requests, but in the meantime you can still add it to the keyvalidator prototype at runtime...
+
+```javascript
+
+  var muster = require('muster').muster;
+  var validator = muster.keyValidatorPrototype;
+      // just add your own validations to the prototype
+      validator.mustBeTheColour = function(colour){
+        // the validation message...
+        this.message = "Key '" + this.keyname + "' must be the colour " + colour + ".";
+        this.callback = function(val){  // the validation function
+          return val == colour; 
+        };
+        this.muster.addKeyValidator(this) // registers the key validator
+        return this.muster;  // necessary for chaining
+      }
+      var error = (new Muster())
+                    .key("colour").mustBeTheColour("blue")
+                    .error({"colour" : "blue"})  
+
+```
+
 
