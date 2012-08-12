@@ -1,5 +1,5 @@
 var should = require('should');
-var Muster = require('../muster').Muster;
+var Muster = require('../muster');
 
 describe('Muster', function(){ 
 
@@ -408,6 +408,10 @@ describe('Muster', function(){
       error.type.should.equal("InvalidAttribute");
       error.message.should.equal("Key 'year' was not in the correct format.");
       error.detail.should.equal('2010');
+    });
+    it ("should return an error if the input is non-string", function(){
+      var error = (new Muster()).key("year").mustMatch(/^[0-9]{4}$/).error({"year":2010});
+      error.should.equal(false);
     });
   
   });
