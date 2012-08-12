@@ -9,7 +9,7 @@ muster does not pollute native prototypes or the global namespace.
 
 ### Specifying required and optional fields
 ```javascript
-var muster = require('muster').muster;
+var muster = require('muster');
 var m = (new muster())
     .mustHaveKeys(["firstname", "lastname"])
     .mayHaveKeys(["emailaddress"])
@@ -25,7 +25,7 @@ if (error){
 
 ### The anatomy of an error object:
 ```javascript
-var muster = require('muster').muster;
+var muster = require('muster');
 var m = (new muster())
             .mustHaveKeys(["firstname", "lastname"])
 var doc = { firstname : 'Joe'}
@@ -39,7 +39,7 @@ console.log(error);
 
 ### Key Validators (for validating individual keys of an object):
 ```javascript
-var muster = require('muster').muster;
+var muster = require('muster');
 var m = (new muster())
             .mustHaveKeys(["firstname", "lastname"])
             .key("firstname").mustMatch(/^[A-Za-z\- ]+$/)
@@ -126,7 +126,7 @@ console.log(m.error({"name" : {"first" : "Gregg", "middle" : "pearson", "last" :
 Validators can be chained.
 
 ```javascript
-  var muster = require('muster').muster;
+  var muster = require('muster');
   var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
@@ -141,7 +141,7 @@ Validators can be chained.
 The errors() method will return all errors, rather than just the first one.
 
 ```javascript
-  var muster = require('muster').muster;
+  var muster = require('muster');
   var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
@@ -157,7 +157,7 @@ The errors() method will return all errors, rather than just the first one.
 The check() method will throw the error as an exception, rather than returning it.
 
 ```javascript
-  var muster = require('muster').muster;
+  var muster = require('muster');
   var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
@@ -177,7 +177,7 @@ The check() method will throw the error as an exception, rather than returning i
 The checkAll() method will throw all errors in array as an exception, rather than returning it.
 
 ```javascript
-  var muster = require('muster').muster;
+  var muster = require('muster');
   var m = (new muster())
               .mustHaveKeys(["firstname", "lastname"])
               .mayHaveKeys("birthyear")
@@ -197,7 +197,7 @@ I'd love to hear suggestions or get pull requests, but in the meantime you can s
 
 ```javascript
 
-  var muster = require('muster').muster;
+  var muster = require('muster');
   var validator = muster.keyValidatorPrototype;
       // just add your own validations to the prototype
       validator.mustBeTheColour = function(colour){
