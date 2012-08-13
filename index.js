@@ -1,1 +1,1 @@
-exports.Muster = require('./muster').Muster;
+module.exports = require('./muster');
